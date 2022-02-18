@@ -1,0 +1,21 @@
+quarkus:
+    datasource:
+        db-kind: postgresql
+        password: yxjTRGoN2cd-JZrgZCHpBw
+        reactive:
+            cache-prepared-statements: true
+            hostname-verification-algorithm: HTTPS
+            max-size: 20
+            postgresql:
+                ssl-mode: verify-full
+            trust-certificate-pem: true
+            trust-certificate-pem.certs: cockroach.pem
+            url: postgresql://free-tier5.gcp-europe-west1.cockroachlabs.cloud:26257/raw-cougar-781.defaultdb?options=--cluster%3Draw-cougar-781
+        username: app
+    hibernate-orm:
+        database:
+            generation: update
+        log:
+            sql: true
+    http:
+        port: 8082

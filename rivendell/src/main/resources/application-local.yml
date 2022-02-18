@@ -1,0 +1,10 @@
+quarkus:
+  datasource:
+    reactive:
+      url: postgresql://localhost:5433/roudra
+    username: roudra
+  hibernate-orm:
+    database:
+      generation: update
+    log:
+      sql: true
