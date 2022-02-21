@@ -1,5 +1,6 @@
 package org.roy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import lombok.extern.java.Log;
@@ -16,6 +17,7 @@ import org.roy.model.Trip;
 import org.roy.model.UploadResponse;
 
 import javax.inject.Inject;
+import javax.json.Json;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -65,7 +67,7 @@ public class TripResource {
     @POST
     @Path("/v1")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response uploadTrips(@MultipartForm FileUploadForm form) {
         log.info("UPLOAD FILE");
         Collection<Trip> uploadedTrips = null;
@@ -79,14 +81,14 @@ public class TripResource {
         if (uploadedTrips != null && !uploadedTrips.isEmpty()) {
             rpdac.addTripsAsync(uploadedTrips);
             return Response.ok(
-                            String.format("File Name= %s\nContent Type= %s\nSize= %s\nCharset= %s\nTS= %s\nRows Uploaded=%s",
-                                    form.file.fileName(),
-                                    form.file.contentType(),
-                                    form.file.size(),
-                                    form.file.charSet(),
-                                    Calendar.getInstance().getTime(),
-                                    uploadedTrips.size()
-                            ))
+                            new ObjectMapper().createObjectNode()
+                                    .put("fileName", form.file.fileName())
+                                    .put("contentType",form.file.contentType())
+                                    .put("size", form.file.size())
+                                    .put("charSet", form.file.charSet() == null?"Unknown": form.file.charSet())
+                                    .put("time", Calendar.getInstance().getTime().toString())
+                                    .put("size", uploadedTrips.size())
+                    )
                     .status(Response.Status.CREATED)
                     .build();
         }

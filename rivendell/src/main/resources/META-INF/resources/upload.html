@@ -4,72 +4,71 @@
     <meta charset="UTF-8">
     <title>Citi Bike Trip Uploader</title>
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly.min.css" rel="stylesheet"
-          type="text/css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly-additions.min.css"
-          rel="stylesheet"
-          type="text/css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="local.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-<div class="container">
-    <div class="card">
-        <div class="card-body">
-            <h2 class="card-title">Citi Bike Trip Uploader</h2><br>
-            <div class="container">
-                <input id="file" name="file" type="file">
-                <!-- Drag and Drop container-->
-                <div class="upload-area" id="uploadfile">
-                    <h1>Drag and Drop file here<br/>Or<br/>Click to select file</h1>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Citi Bike Trip Uploader</h2><br>
+                <div class="container">
+                    <input id="file" name="file" type="file">
+                    <!-- Drag and Drop container-->
+                    <div class="upload-area" id="uploadfile">
+                        <h1 id="fileUploadMsg">Drag and Drop file here<br/>Or<br/>Click to select file</h1>
+                    </div>
                 </div>
-            </div>
             <div id="upload-status"></div>
             <div id="overall-status"></div>
             <div id="process-status" style="overflow: auto;height: 500px;overflow-x: hidden;"></div>
+            </div>
         </div>
     </div>
-</div>
 </body>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
+
+    
     $(function() {
         // preventing page from redirecting
-        $("html").on("dragover", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $("h1").text("Drag here");
+        $("#uploadfile").on({
+            dragenter: function (e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        $("#fileUploadMsg").text("Now Drop");
+            },
+            dragover: function (e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        $("#fileUploadMsg").text("Now Drop");
+            },
+            drop: function (e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        $("#fileUploadMsg").text("Upload In Progress");
+                        var file = e.originalEvent.dataTransfer.files;
+                        var fd = new FormData();
+                        fd.append('file', file[0]);
+                        uploadData(fd);
+            },
+            click: function(e){
+                $("#file").click();
+            }     
+                    
         });
 
-        $("html").on("drop", function(e) { e.preventDefault(); e.stopPropagation(); });
-
-        // Drag enter
-        $('.upload-area').on('dragenter', function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-            $("h1").text("Drop");
-        });
-
-        // Drag over
-        $('.upload-area').on('dragover', function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-            $("h1").text("Drop");
-        });
-
-        // Drop
-        $('.upload-area').on('drop', function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-            $("h1").text("Upload");
-            var file = e.originalEvent.dataTransfer.files;
-            var fd = new FormData();
-            fd.append('file', file[0]);
-            uploadData(fd);
-        });
-
-        // Open file selector on div click
-        $("#uploadfile").click(function(){
-            $("#file").click();
+        //Prevent page redirection
+        $("html").on({
+            drop: function(e) { 
+                        e.preventDefault(); 
+                        e.stopPropagation(); 
+            },
+            dragover: function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $("#fileUploadMsg").text("Drag it over here");
+            },
         });
 
         // file selected
@@ -79,86 +78,58 @@
             fd.append('file',files);
             uploadData(fd);
         });
+
+        //--- SSE Handling
+        var source = new EventSource("/trips/v1/status");
+        var failed =0;
+        var successful=0;
+
+        source.addEventListener('open', function(e) {
+            console.log('Connection was opened.');
+        }, false);
+
+        source.addEventListener('error', function(e) {
+            if (e.readyState == EventSource.CLOSED) {
+                console.log('Connection was closed.');
+            }
+        }, false);
+
+        source.addEventListener('message', function(e) {
+            console.log('Received Message.');
+            var data = JSON.parse(e.data);
+            if(data.uploadStatus) {successful++;}
+            else {failed++;}
+            //console.log(data.id, data.msg, failed, successful);
+            var row = $(`<span id='${data.recordId}'> Record# <i>${data.recordId}</i>   | ${data.message}</span>`);
+            $("#process-status").prepend(row);
+            $("#overall-status").html(`<h4>Failed: ${failed} Successful: ${successful} </h4>`);
+        }, false);
     });
 
     // Sending AJAX request and upload file
     function uploadData(formdata){
-        $.ajax({
+         $.ajax({
             url: 'trips/v1',
             type: 'post',
             data: formdata,
             contentType: false,
             processData: false,
-            dataType: 'json',
-            success: function(response){
-                addThumbnail(response);
+            // dataType: 'json',
+            success: function(r){
+                $("#uploadfile h1").remove();
+                $("#uploadfile").append('<div width="150px"><img src="icon.png" width="50px" height="50px"><span>'+r.fileName+'<span></div>');
             },
-            failure: function(response){
-                 addThumbnail(response);
+            failure: function(r){
+                console.log(r);
+            },
+            progress: function(e){
+                console.log(e);
             }
+
         });
     }
-
-    // Added thumbnail
-    function addThumbnail(data){
-        $("#uploadfile h1").remove();
-        var len = $("#uploadfile div.thumbnail").length;
-
-        var num = Number(len);
-        num = num + 1;
-
-        var name = data.name;
-        var size = convertSize(data.size);
-        var src = data.src;
-
-        // Creating an thumbnail
-        $("#uploadfile").append('<div id="thumbnail_'+num+'" class="thumbnail"></div>');
-        $("#thumbnail_"+num).append('<img src="'+src+'" width="100%" height="78%">');
-        $("#thumbnail_"+num).append('<span class="size">'+size+'<span>');
-
-    }
-
-    // Bytes conversion
-    function convertSize(size) {
-        var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-        if (size == 0) return '0 Byte';
-        var i = parseInt(Math.floor(Math.log(size) / Math.log(1024)));
-        return Math.round(size / Math.pow(1024, i), 2) + ' ' + sizes[i];
-    }
-    //---------------------
-    var source = new EventSource("/trips/v1/status");
-    var failed =0;
-    var successful=0;
-    source.addEventListener('message', function(e) {
-      console.log(e.data);
-    }, false);
-
-    source.addEventListener('open', function(e) {
-      // Connection was opened.
-    }, false);
-
-    source.addEventListener('error', function(e) {
-      if (e.readyState == EventSource.CLOSED) {
-        // Connection was closed.
-      }
-    }, false);
-
-    source.addEventListener('message', function(e) {
-      var data = JSON.parse(e.data);
-      if(data.uploadStatus) {successful++;}
-      else {failed++;}
-      //console.log(data.id, data.msg, failed, successful);
-      var row = $(`<span class='col-md-12' id='${data.recordId}'> Record# <i>${data.recordId}</i>   | ${data.message}</span>`);
-      $("#process-status").prepend(row);
-      $("#overall-status").html(`<h4>Failed: ${failed} Successful: ${successful} </h4>`);
-    }, false);
-
-
-
-
-
-
-
+    
+    
 </script>
 
 
