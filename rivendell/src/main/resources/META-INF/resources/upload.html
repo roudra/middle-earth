@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Citi Bike Trip Uploader</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="local.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Citi Bike Trip Uploader</h2><br>
+                <div class="container">
+                    <input id="file" name="file" type="file">
+                    <!-- Drag and Drop container-->
+                    <div class="upload-area" id="uploadfile">
+                        <h1 id="fileUploadMsg">Drag and Drop file here<br/>Or<br/>Click to select file</h1>
+                    </div>
+                </div>
+            <div id="upload-status"></div>
+            <div id="overall-status"></div>
+            <div id="process-status" style="overflow: auto;height: 500px;overflow-x: hidden;"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+
+    
+    $(function() {
+        // preventing page from redirecting
+        $("#uploadfile").on({
+            dragenter: function (e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        $("#fileUploadMsg").text("Now Drop");
+            },
+            dragover: function (e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        $("#fileUploadMsg").text("Now Drop");
+            },
+            drop: function (e) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        $("#fileUploadMsg").text("Upload In Progress");
+                        var file = e.originalEvent.dataTransfer.files;
+                        var fd = new FormData();
+                        fd.append('file', file[0]);
+                        uploadData(fd);
+            },
+            click: function(e){
+                $("#file").click();
+            }     
+                    
+        });
+
+        //Prevent page redirection
+        $("html").on({
+            drop: function(e) { 
+                        e.preventDefault(); 
+                        e.stopPropagation(); 
+            },
+            dragover: function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $("#fileUploadMsg").text("Drag it over here");
+            },
+        });
+
+        // file selected
+        $("#file").change(function(){
+            var fd = new FormData();
+            var files = $('#file')[0].files[0];
+            fd.append('file',files);
+            uploadData(fd);
+        });
+
+        //--- SSE Handling
+        var source = new EventSource("/trips/v1/status");
+        var failed =0;
+        var successful=0;
+
+        source.addEventListener('open', function(e) {
+            console.log('Connection was opened.');
+        }, false);
+
+        source.addEventListener('error', function(e) {
+            if (e.readyState == EventSource.CLOSED) {
+                console.log('Connection was closed.');
+            }
+        }, false);
+
+        source.addEventListener('message', function(e) {
+            console.log('Received Message.');
+            var data = JSON.parse(e.data);
+            if(data.uploadStatus) {successful++;}
+            else {failed++;}
+            //console.log(data.id, data.msg, failed, successful);
+            var row = $(`<span id='${data.recordId}'> Record# <i>${data.recordId}</i>   | ${data.message}</span>`);
+            $("#process-status").prepend(row);
+            $("#overall-status").html(`<h4>Failed: ${failed} Successful: ${successful} </h4>`);
+        }, false);
+    });
+
+    // Sending AJAX request and upload file
+    function uploadData(formdata){
+         $.ajax({
+            url: 'trips/v1',
+            type: 'post',
+            data: formdata,
+            contentType: false,
+            processData: false,
+            // dataType: 'json',
+            success: function(r){
+                $("#uploadfile h1").remove();
+                $("#uploadfile").append('<div width="150px"><img src="icon.png" width="50px" height="50px"><span>'+r.fileName+'<span></div>');
+            },
+            failure: function(r){
+                console.log(r);
+            },
+            progress: function(e){
+                console.log(e);
+            }
+
+        });
+    }
+    
+    
+</script>
+
+
+</html>

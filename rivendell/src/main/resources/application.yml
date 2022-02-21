@@ -1,0 +1,11 @@
+quarkus:
+    datasource:
+        db-kind: postgresql
+        reactive:
+            cache-prepared-statements: true
+            max-size: 20
+    http:
+        port: 8081
+    smallrye-openapi:
+        info-title: Trip Manager
+        path: /api/docs
