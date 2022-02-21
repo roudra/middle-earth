@@ -1,8 +1,4 @@
-# rivendell Project
-
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
-
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+# Rivendell Project
 
 ## Running the application in dev mode
 
@@ -10,8 +6,7 @@ You can run your application in dev mode that enables live coding using:
 ```shell script
 ./gradlew quarkusDev
 ```
-
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
+> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8081/q/dev/.
 
 ## Packaging and running the application
 
@@ -46,15 +41,3 @@ Or, if you don't have GraalVM installed, you can run the native executable build
 You can then execute your native executable with: `./build/rivendell-1.0.0-runner`
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/gradle-tooling.
-
-## Related Guides
-
-- RESTEasy Reactive ([guide](https://quarkus.io/guides/resteasy-reactive)): Reactive implementation of JAX-RS with additional features. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.
-
-## Provided Code
-
-### RESTEasy Reactive
-
-Easily start your Reactive RESTful Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
