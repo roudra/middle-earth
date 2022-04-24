@@ -1,4 +1,4 @@
-"""minasTirith URL Configuration
+"""homeApp URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.0/topics/http/urls/
@@ -14,15 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.shortcuts import render
 from django.urls import path, include
-from django.http import HttpResponse
 from . import views
 
-
-
 urlpatterns = [
-    path('', views.returnHomePage, name="home"),
-    path('trips/', include('tripview.urls')),
-    path('dev/', views.returnDevPage, name="dev")
+    path('admin/', admin.site.urls),
+    path('trips/', include('tripViewer.urls')),
+    path('', views.returnHomePage, name='home'),
 ]
