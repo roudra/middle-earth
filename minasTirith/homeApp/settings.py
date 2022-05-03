@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tripViewer'
+    'tripViewer',
+    'django_tables2',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -78,8 +80,14 @@ WSGI_APPLICATION = 'homeApp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'roudra',
+        'USER': 'roudra',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '5433',
     }
 }
 

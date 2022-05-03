@@ -1,2 +1,4 @@
 Django==4.0.4
 django-tables2==2.4.1
+django-filter
+psycopg2-binary

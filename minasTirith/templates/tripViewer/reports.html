@@ -1,0 +1,74 @@
+{% extends 'main.html' %}
+
+{% block content %}
+  <div id="container" style="width: 75%;">
+    <canvas id="member-chart" data-url="{% url 'api-members-chart' %}"></canvas>
+    <canvas id="station-chart" data-url="{% url 'api-stations-chart' %}"></canvas>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+  <script>
+
+
+    $(function () {
+      var $stationChart = $("#station-chart");
+      var $memberPie = $("#member-chart");
+
+      //AJAX CALL TO GET Station Data
+      $.ajax({
+        url: $stationChart.data("url"),
+        success: function (data) {
+          var ctx = $stationChart[0].getContext("2d");
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.labels,
+              datasets: [{
+                label: 'Station',
+                backgroundColor: 'blue',
+                data: data.data
+              }]
+            },
+            options: {
+              responsive: true,
+              legend: {
+                position: 'top',
+              },
+              title: {
+                display: true,
+                text: 'Station Bar Chart'
+              }
+            }
+          });
+        }
+      });
+
+      //AJAX CALL TO GET Member Data
+      $.ajax({
+        url: $memberPie.data("url"),
+        success: function (data) {
+          var ctx = $memberPie[0].getContext("2d");
+          new Chart(ctx, {
+            type: 'pie',
+            data: {
+              label: 'Member Type',
+              datasets: [{
+                data: data.data,
+                backgroundColor: ['#696019', '#508010', '#A9A5A9', '#C0C0C0', '#D3D3D3'],
+              }],
+              labels: data.labels,
+            },
+            options: {
+              responsive: true
+            }
+          });
+        }
+      });
+
+
+    });
+
+  </script>
+
+{% endblock %}

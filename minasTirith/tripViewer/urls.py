@@ -16,7 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
+from . import apis
+from .views import TripListView
 
 urlpatterns = [
-    path('', views.returnTripsPage, name="trips"),
+    # path('', views.returnTripsPage, name="trips"),
+    path('', TripListView.as_view(), name="trips"),
+    path('new', views.returnAddTripsPage, name="add_trip"),
+    path('report',  views.reports, name="trip-reports"),
+
+    path('api/stations', apis.chart_end_stations, name="api-stations-chart"),
+    path('api/members', apis.chart_members, name="api-members-chart"),
+    # path('/<str:pk>', views.returnEditTripsPage, name="trip_edit"),
 ]
